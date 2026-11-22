@@ -1,1 +1,227 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Джерри (Jerry) - Голосовой ИИ-ассистент</title>
+    <meta name="description" content="Jerry - локальный голосовой ИИ-ассистент для Windows на базе Ollama. Установка таймеров, открытие приложений и поиск ddgs.">
+    <style>
+        /* Базовые настройки */
+        :root {
+            --bg-color: #0a0a0a;
+            --text-main: #e5e7eb;
+            --text-muted: #9ca3af;
+            --blue-primary: #2563eb;
+            --blue-hover: #1d4ed8;
+            --blue-glow: rgba(37, 99, 235, 0.5);
+            --card-bg: #111111;
+            --border-color: #262626;
+        }
 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        /* Контейнер */
+        .container {
+            max-width: 800px;
+            width: 100%;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        /* Анимация появления */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate {
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+
+        /* Заголовки */
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #60a5fa, #2563eb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+        }
+
+        /* Карточка с описанием */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 40px;
+            text-align: left;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .card ul {
+            list-style: none;
+            margin-top: 15px;
+        }
+
+        .card li {
+            margin-bottom: 10px;
+            padding-left: 25px;
+            position: relative;
+            color: var(--text-muted);
+        }
+
+        .card li::before {
+            content: "✦";
+            position: absolute;
+            left: 0;
+            color: var(--blue-primary);
+            font-weight: bold;
+        }
+
+        .warning {
+            font-size: 0.9rem;
+            color: #fbbf24;
+            margin-top: 20px;
+            padding: 10px 15px;
+            background: rgba(251, 191, 36, 0.1);
+            border-left: 3px solid #fbbf24;
+            border-radius: 4px;
+        }
+
+        /* Кнопки */
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 28px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        /* Синяя кнопка с пульсацией */
+        .btn-primary {
+            background-color: var(--blue-primary);
+            color: #ffffff;
+            box-shadow: 0 0 15px var(--blue-glow);
+            animation: pulseGlow 2s infinite;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--blue-hover);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 10px 25px var(--blue-glow);
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 15px var(--blue-glow); }
+            50% { box-shadow: 0 0 25px var(--blue-glow); }
+            100% { box-shadow: 0 0 15px var(--blue-glow); }
+        }
+
+        /* Кнопка-обводка */
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--blue-primary);
+            border-color: var(--blue-primary);
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(37, 99, 235, 0.1);
+            transform: translateY(-3px);
+        }
+
+        /* Футер */
+        footer {
+            margin-top: auto;
+            padding: 30px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        
+        footer a {
+            color: var(--blue-primary);
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Заголовок -->
+        <h1 class="animate">Jerry</h1>
+        <p class="subtitle animate delay-1">Голосовой ИИ-ассистент для Windows</p>
+
+        <!-- Блок с информацией -->
+        <div class="card animate delay-2">
+            <p>Умеет выполнять команды (например, установка таймера или открытие приложений). Работает на базе <strong>Ollama</strong>, также интегрирован поиск <strong>ddgs</strong>.</p>
+            
+            <ul>
+                <li>База: Ollama (локальные языковые модели)</li>
+                <li>Поиск: ddgs</li>
+                <li>Платформа: Windows</li>
+                <li>Особенность: Код написан почти полностью с помощью ИИ</li>
+            </ul>
+
+            <div class="warning">
+                ⚠️ Проект находится в стадии активной разработки, поэтому функционал пока ограничен.
+            </div>
+        </div>
+
+        <!-- Кнопки -->
+        <div class="buttons animate delay-3">
+            <a href="https://github.com/xw3rtys/jerry/releases/tag/v1" class="btn btn-primary">
+                ⬇️ Скачать v1.0
+            </a>
+            <a href="https://github.com/xw3rtys/jerry" class="btn btn-secondary">
+                💻 Исходный код
+            </a>
+        </div>
+    </div>
+
+    <!-- Подвал -->
+    <footer>
+        Есть идеи? Пишите: <a href="mailto:alekseyburmalda228@gmail.com">alekseyburmalda228@gmail.com</a>
+    </footer>
+
+</body>
+</html>
