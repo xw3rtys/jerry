@@ -1,227 +1,358 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Джерри (Jerry) - Голосовой ИИ-ассистент</title>
-    <meta name="description" content="Jerry - локальный голосовой ИИ-ассистент для Windows на базе Ollama. Установка таймеров, открытие приложений и поиск ddgs.">
-    <style>
-        /* Базовые настройки */
-        :root {
-            --bg-color: #0a0a0a;
-            --text-main: #e5e7eb;
-            --text-muted: #9ca3af;
-            --blue-primary: #2563eb;
-            --blue-hover: #1d4ed8;
-            --blue-glow: rgba(37, 99, 235, 0.5);
-            --card-bg: #111111;
-            --border-color: #262626;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Джерри — Голосовой ИИ-помощник для Windows</title>
+  <meta name="description" content="Бесплатный локальный голосовой ИИ-помощник Джерри для Windows на базе Ollama. Работает офлайн, ищет в интернете, управляет ПК." />
+  <style>
+    :root {
+      --bg: #0e0e12;
+      --card: #16161d;
+      --card-hover: #1d1d26;
+      --border: #2a2a36;
+      --text: #f4f4f6;
+      --muted: #9ca3af;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --green: #10b981;
+    }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+    }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            line-height: 1.6;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            overflow-x: hidden;
-        }
+    body {
+      background: radial-gradient(circle at top, #181a28 0%, var(--bg) 60%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 40px 16px;
+    }
 
-        /* Контейнер */
-        .container {
-            max-width: 800px;
-            width: 100%;
-            padding: 40px 20px;
-            text-align: center;
-        }
+    .container {
+      width: 100%;
+      max-width: 760px;
+      animation: fadeUp 0.6s ease-out;
+    }
 
-        /* Анимация появления */
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-        .animate {
-            animation: fadeInUp 0.8s ease forwards;
-        }
+    .hero {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 36px 32px;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+      margin-bottom: 24px;
+    }
 
-        .delay-1 { animation-delay: 0.1s; }
-        .delay-2 { animation-delay: 0.2s; }
-        .delay-3 { animation-delay: 0.3s; }
+    .badge-latest {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(16, 185, 129, 0.14);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
 
-        /* Заголовки */
-        h1 {
-            font-size: 3rem;
-            font-weight: 800;
-            margin-bottom: 10px;
-            background: linear-gradient(to right, #60a5fa, #2563eb);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -1px;
-        }
+    h1 {
+      font-size: 38px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+    }
 
-        .subtitle {
-            font-size: 1.2rem;
-            color: var(--text-muted);
-            margin-bottom: 40px;
-        }
+    .subtitle {
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.6;
+      max-width: 580px;
+      margin: 0 auto 28px;
+    }
 
-        /* Карточка с описанием */
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 30px;
-            margin-bottom: 40px;
-            text-align: left;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-        }
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+    }
 
-        .card ul {
-            list-style: none;
-            margin-top: 15px;
-        }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 22px;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
 
-        .card li {
-            margin-bottom: 10px;
-            padding-left: 25px;
-            position: relative;
-            color: var(--text-muted);
-        }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.35);
+    }
 
-        .card li::before {
-            content: "✦";
-            position: absolute;
-            left: 0;
-            color: var(--blue-primary);
-            font-weight: bold;
-        }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-2px);
+    }
 
-        .warning {
-            font-size: 0.9rem;
-            color: #fbbf24;
-            margin-top: 20px;
-            padding: 10px 15px;
-            background: rgba(251, 191, 36, 0.1);
-            border-left: 3px solid #fbbf24;
-            border-radius: 4px;
-        }
+    .btn-secondary {
+      background: #22222c;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
 
-        /* Кнопки */
-        .buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
+    .btn-secondary:hover {
+      background: #2c2c38;
+      transform: translateY(-2px);
+    }
 
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 14px 28px;
-            font-size: 1rem;
-            font-weight: 600;
-            text-decoration: none;
-            border-radius: 8px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-            border: 2px solid transparent;
-        }
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 28px 0 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
 
-        /* Синяя кнопка с пульсацией */
-        .btn-primary {
-            background-color: var(--blue-primary);
-            color: #ffffff;
-            box-shadow: 0 0 15px var(--blue-glow);
-            animation: pulseGlow 2s infinite;
-        }
+    .releases-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
 
-        .btn-primary:hover {
-            background-color: var(--blue-hover);
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 10px 25px var(--blue-glow);
-        }
+    .release-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px 22px;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
 
-        @keyframes pulseGlow {
-            0% { box-shadow: 0 0 15px var(--blue-glow); }
-            50% { box-shadow: 0 0 25px var(--blue-glow); }
-            100% { box-shadow: 0 0 15px var(--blue-glow); }
-        }
+    .release-card.is-latest {
+      border-color: rgba(16, 185, 129, 0.45);
+      background: linear-gradient(180deg, rgba(16, 185, 129, 0.06) 0%, var(--card) 100%);
+    }
 
-        /* Кнопка-обводка */
-        .btn-secondary {
-            background-color: transparent;
-            color: var(--blue-primary);
-            border-color: var(--blue-primary);
-        }
+    .release-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
 
-        .btn-secondary:hover {
-            background-color: rgba(37, 99, 235, 0.1);
-            transform: translateY(-3px);
-        }
+    .release-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-        /* Футер */
-        footer {
-            margin-top: auto;
-            padding: 30px;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-        
-        footer a {
-            color: var(--blue-primary);
-            text-decoration: none;
-        }
-    </style>
+    .release-name {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .tag-pill {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 8px;
+      background: #242430;
+      color: #d1d5db;
+      border: 1px solid var(--border);
+    }
+
+    .latest-pill {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.18);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+
+    .release-date {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .release-body {
+      color: #cbd5e1;
+      font-size: 14px;
+      line-height: 1.55;
+      white-space: pre-line;
+      margin-bottom: 14px;
+    }
+
+    .release-footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .btn-sm {
+      padding: 8px 14px;
+      font-size: 13px;
+      border-radius: 10px;
+    }
+
+    .footer-note {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 32px;
+    }
+
+    .footer-note a {
+      color: #60a5fa;
+      text-decoration: none;
+    }
+  </style>
 </head>
 <body>
-
-    <div class="container">
-        <!-- Заголовок -->
-        <h1 class="animate">Jerry</h1>
-        <p class="subtitle animate delay-1">Голосовой ИИ-ассистент для Windows</p>
-
-        <!-- Блок с информацией -->
-        <div class="card animate delay-2">
-            <p>Умеет выполнять команды (например, установка таймера или открытие приложений). Работает на базе <strong>Ollama</strong>, также интегрирован поиск <strong>ddgs</strong>.</p>
-            
-            <ul>
-                <li>База: Ollama (локальные языковые модели)</li>
-                <li>Поиск: ddgs</li>
-                <li>Платформа: Windows</li>
-                <li>Особенность: Код написан почти полностью с помощью ИИ</li>
-            </ul>
-
-            <div class="warning">
-                ⚠️ Проект находится в стадии активной разработки, поэтому функционал пока ограничен.
-            </div>
-        </div>
-
-        <!-- Кнопки -->
-        <div class="buttons animate delay-3">
-            <a href="https://github.com/xw3rtys/jerry/releases/tag/v1" class="btn btn-primary">
-                ⬇️ Скачать v1.0
-            </a>
-            <a href="https://github.com/xw3rtys/jerry" class="btn btn-secondary">
-                💻 Исходный код
-            </a>
-        </div>
+  <div class="container">
+    <div class="hero">
+      <div class="badge-latest" id="hero-badge">⏳ Проверяем последнюю версию...</div>
+      <h1>Джерри</h1>
+      <p class="subtitle">
+        Голосовой ИИ-ассистент для Windows на базе локальных нейросетей <strong>Ollama</strong> с поиском в интернете (<strong>ddgs</strong>), таймерами и управлением приложениями.
+      </p>
+      <div class="buttons">
+        <a id="main-download-btn" href="https://github.com" class="btn btn-primary">
+          ⬇ Скачать последнюю версию
+        </a>
+        <a href="https://github.com" target="_blank" class="btn btn-secondary">
+          💻 Исходный код на GitHub
+        </a>
+      </div>
     </div>
 
-    <!-- Подвал -->
-    <footer>
-        Есть идеи? Пишите: <a href="mailto:alekseyburmalda228@gmail.com">alekseyburmalda228@gmail.com</a>
-    </footer>
+    <div class="section-title">
+      <span>📦 Все версии программы</span>
+      <span id="versions-count" style="font-size: 13px; color: var(--muted); font-weight: 500;">Загрузка...</span>
+    </div>
 
+    <div class="releases-list" id="releases-list">
+      <div class="release-card">
+        <div class="release-body" style="margin: 0; color: var(--muted);">Загружаем список версий с GitHub...</div>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      Есть идеи или нашли баг? Пишите на почту: <a href="mailto:alekseyburmalda228@gmail.com">alekseyburmalda228@gmail.com</a>
+    </div>
+  </div>
+
+  <script>
+    const REPO = "xw3rtys/jerry";
+    const API_URL = `https://github.com{REPO}/releases`;
+
+    async function loadReleases() {
+      const listEl = document.getElementById("releases-list");
+      const heroBadge = document.getElementById("hero-badge");
+      const mainBtn = document.getElementById("main-download-btn");
+      const countEl = document.getElementById("versions-count");
+
+      try {
+        const res = await fetch(API_URL);
+        if (!res.ok) throw new Error("GitHub API error");
+        const releases = await res.json();
+
+        if (!releases || releases.length === 0) {
+          heroBadge.textContent = "Релизы скоро появятся";
+          listEl.innerHTML = `<div class="release-card"><div class="release-body">Пока нет опубликованных релизов.</div></div>`;
+          return;
+        }
+
+        // Самый свежий релиз идёт первым в списке GitHub
+        const latest = releases[0];
+        const latestExe = (latest.assets || []).find(a => a.name.toLowerCase().endsWith(".exe"));
+        const latestUrl = latestExe ? latestExe.browser_download_url : latest.html_url;
+
+        heroBadge.textContent = `✨ Последняя версия: ${latest.tag_name}`;
+        mainBtn.href = latestUrl;
+        mainBtn.textContent = `⬇ Скачать ${latest.name || latest.tag_name} (Последняя)`;
+        countEl.textContent = `Всего версий: ${releases.length}`;
+
+        listEl.innerHTML = "";
+
+        releases.forEach((rel, index) => {
+          const isLatest = index === 0;
+          const exeAsset = (rel.assets || []).find(a => a.name.toLowerCase().endsWith(".exe"));
+          const downloadUrl = exeAsset ? exeAsset.browser_download_url : rel.html_url;
+          const fileSizeMb = exeAsset ? ` (${Math.round(exeAsset.size / 1024 / 1024)} МБ)` : "";
+
+          const dateStr = new Date(rel.published_at).toLocaleDateString("ru-RU", {
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+          });
+
+          const cleanBody = (rel.body || "Описание версии не указано.")
+            .replace(/###\s*/g, "")
+            .replace(/\*\*/g, "")
+            .trim();
+
+          const card = document.createElement("div");
+          card.className = `release-card ${isLatest ? "is-latest" : ""}`;
+          card.innerHTML = `
+            <div class="release-header">
+              <div class="release-title-group">
+                <span class="release-name">${rel.name || rel.tag_name}</span>
+                <span class="tag-pill">${rel.tag_name}</span>
+                ${isLatest ? '<span class="latest-pill">Последняя</span>' : ''}
+              </div>
+              <span class="release-date">${dateStr}</span>
+            </div>
+            <div class="release-body">${cleanBody}</div>
+            <div class="release-footer">
+              <a href="${downloadUrl}" class="btn ${isLatest ? 'btn-primary' : 'btn-secondary'} btn-sm">
+                ⬇ Скачать ${exeAsset ? exeAsset.name + fileSizeMb : rel.tag_name}
+              </a>
+              <a href="${rel.html_url}" target="_blank" style="color: var(--muted); font-size: 13px; text-decoration: none;">
+                Страница релиза ↗
+              </a>
+            </div>
+          `;
+          listEl.appendChild(card);
+        });
+      } catch (err) {
+        heroBadge.textContent = "Джерри для Windows";
+        countEl.textContent = "";
+        listEl.innerHTML =
+          '<div class="release-card">' +
+            '<div class="release-body">Не удалось загрузить список версий напрямую. Вы можете скачать последнюю версию на странице релизов GitHub.</div>' +
+            '<a href="https://github.com' + REPO + '/releases" target="_blank" class="btn btn-primary btn-sm">Открыть релизы GitHub</a>' +
+          '</div>';
+      }
+    }
+
+    loadReleases();
+  </script>
 </body>
 </html>
