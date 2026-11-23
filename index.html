@@ -9,13 +9,11 @@
     :root {
       --bg: #0e0e12;
       --card: #16161d;
-      --card-hover: #1d1d26;
       --border: #2a2a36;
       --text: #f4f4f6;
       --muted: #9ca3af;
       --accent: #3b82f6;
       --accent-hover: #2563eb;
-      --green: #10b981;
     }
 
     * {
@@ -146,7 +144,6 @@
       border: 1px solid var(--border);
       border-radius: 18px;
       padding: 20px 22px;
-      transition: border-color 0.2s ease, background 0.2s ease;
     }
 
     .release-card.is-latest {
@@ -237,14 +234,14 @@
 <body>
   <div class="container">
     <div class="hero">
-      <div class="badge-latest" id="hero-badge">⏳ Проверяем последнюю версию...</div>
+      <div class="badge-latest" id="hero-badge">✨ Последняя версия: v2</div>
       <h1>Джерри</h1>
       <p class="subtitle">
         Голосовой ИИ-ассистент для Windows на базе локальных нейросетей <strong>Ollama</strong> с поиском в интернете (<strong>ddgs</strong>), таймерами и управлением приложениями.
       </p>
       <div class="buttons">
         <a id="main-download-btn" href="https://github.com" class="btn btn-primary">
-          ⬇ Скачать последнюю версию
+          ⬇ Скачать Джерри v2.0 (Последняя)
         </a>
         <a href="https://github.com" target="_blank" class="btn btn-secondary">
           💻 Исходный код на GitHub
@@ -269,91 +266,53 @@
   </div>
 
   <script>
-    const REPO = "xw3rtys/jerry";
-    const API_URL = `https://github.com{REPO}/releases`;
+    fetch("https://github.com")
+      .then(function(r) { return r.json(); })
+      .then(function(releases) {
+        var listEl = document.getElementById("releases-list");
+        var heroBadge = document.getElementById("hero-badge");
+        var mainBtn = document.getElementById("main-download-btn");
+        var countEl = document.getElementById("versions-count");
 
-    async function loadReleases() {
-      const listEl = document.getElementById("releases-list");
-      const heroBadge = document.getElementById("hero-badge");
-      const mainBtn = document.getElementById("main-download-btn");
-      const countEl = document.getElementById("versions-count");
+        if (!Array.isArray(releases) || releases.length === 0) return;
 
-      try {
-        const res = await fetch(API_URL);
-        if (!res.ok) throw new Error("GitHub API error");
-        const releases = await res.json();
-
-        if (!releases || releases.length === 0) {
-          heroBadge.textContent = "Релизы скоро появятся";
-          listEl.innerHTML = `<div class="release-card"><div class="release-body">Пока нет опубликованных релизов.</div></div>`;
-          return;
-        }
-
-        // Самый свежий релиз идёт первым в списке GitHub
-        const latest = releases[0];
-        const latestExe = (latest.assets || []).find(a => a.name.toLowerCase().endsWith(".exe"));
-        const latestUrl = latestExe ? latestExe.browser_download_url : latest.html_url;
-
-        heroBadge.textContent = `✨ Последняя версия: ${latest.tag_name}`;
-        mainBtn.href = latestUrl;
-        mainBtn.textContent = `⬇ Скачать ${latest.name || latest.tag_name} (Последняя)`;
-        countEl.textContent = `Всего версий: ${releases.length}`;
+        var latest = releases.at(0);
+        var latestExe = (latest.assets || []).find(function(a) { return a.name.endsWith(".exe"); });
+        heroBadge.textContent = "✨ Последняя версия: " + latest.tag_name;
+        mainBtn.href = latestExe ? latestExe.browser_download_url : latest.html_url;
+        mainBtn.textContent = "⬇ Скачать " + (latest.name || latest.tag_name) + " (Последняя)";
+        countEl.textContent = "Всего версий: " + releases.length;
 
         listEl.innerHTML = "";
+        releases.forEach(function(rel, i) {
+          var isLatest = (i === 0);
+          var exe = (rel.assets || []).find(function(a) { return a.name.endsWith(".exe"); });
+          var url = exe ? exe.browser_download_url : rel.html_url;
+          var size = exe ? " (" + Math.round(exe.size / 1048576) + " МБ)" : "";
+          var date = new Date(rel.published_at).toLocaleDateString("ru-RU");
+          var body = (rel.body || "").replace(/[#*]/g, "").trim();
 
-        releases.forEach((rel, index) => {
-          const isLatest = index === 0;
-          const exeAsset = (rel.assets || []).find(a => a.name.toLowerCase().endsWith(".exe"));
-          const downloadUrl = exeAsset ? exeAsset.browser_download_url : rel.html_url;
-          const fileSizeMb = exeAsset ? ` (${Math.round(exeAsset.size / 1024 / 1024)} МБ)` : "";
-
-          const dateStr = new Date(rel.published_at).toLocaleDateString("ru-RU", {
-            day: "numeric",
-            month: "long",
-            year: "numeric"
-          });
-
-          const cleanBody = (rel.body || "Описание версии не указано.")
-            .replace(/###\s*/g, "")
-            .replace(/\*\*/g, "")
-            .trim();
-
-          const card = document.createElement("div");
-          card.className = `release-card ${isLatest ? "is-latest" : ""}`;
-          card.innerHTML = `
-            <div class="release-header">
-              <div class="release-title-group">
-                <span class="release-name">${rel.name || rel.tag_name}</span>
-                <span class="tag-pill">${rel.tag_name}</span>
-                ${isLatest ? '<span class="latest-pill">Последняя</span>' : ''}
-              </div>
-              <span class="release-date">${dateStr}</span>
-            </div>
-            <div class="release-body">${cleanBody}</div>
-            <div class="release-footer">
-              <a href="${downloadUrl}" class="btn ${isLatest ? 'btn-primary' : 'btn-secondary'} btn-sm">
-                ⬇ Скачать ${exeAsset ? exeAsset.name + fileSizeMb : rel.tag_name}
-              </a>
-              <a href="${rel.html_url}" target="_blank" style="color: var(--muted); font-size: 13px; text-decoration: none;">
-                Страница релиза ↗
-              </a>
-            </div>
-          `;
+          var card = document.createElement("div");
+          card.className = "release-card" + (isLatest ? " is-latest" : "");
+          card.innerHTML =
+            '<div class="release-header">' +
+              '<div class="release-title-group">' +
+                '<span class="release-name">' + (rel.name || rel.tag_name) + '</span>' +
+                '<span class="tag-pill">' + rel.tag_name + '</span>' +
+                (isLatest ? '<span class="latest-pill">Последняя</span>' : '') +
+              '</div>' +
+              '<span class="release-date">' + date + '</span>' +
+            '</div>' +
+            '<div class="release-body">' + body + '</div>' +
+            '<div class="release-footer">' +
+              '<a href="' + url + '" class="btn ' + (isLatest ? 'btn-primary' : 'btn-secondary') + ' btn-sm">' +
+                '⬇ Скачать ' + (exe ? exe.name + size : rel.tag_name) +
+              '</a>' +
+              '<a href="' + rel.html_url + '" target="_blank" style="color: var(--muted); font-size: 13px; text-decoration: none;">Страница релиза ↗</a>' +
+            '</div>';
           listEl.appendChild(card);
         });
-      } catch (err) {
-        heroBadge.textContent = "Джерри для Windows";
-        countEl.textContent = "";
-        listEl.innerHTML =
-          '<div class="release-card">' +
-            '<div class="release-body">Не удалось загрузить список версий напрямую. Вы можете скачать последнюю версию на странице релизов GitHub.</div>' +
-            '<a href="https://github.com' + REPO + '/releases" target="_blank" class="btn btn-primary btn-sm">Открыть релизы GitHub</a>' +
-          '</div>';
-      }
-    }
-
-    loadReleases();
+      });
   </script>
 </body>
 </html>
-
